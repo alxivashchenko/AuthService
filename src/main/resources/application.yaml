@@ -1,0 +1,20 @@
+server:
+  port: ${AUTH_SERVICE_PORT}
+
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: ${AUTH_JPA_DDL}
+    show-sql: ${AUTH_JPA_SHOW_SQL}
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+
+jwt:
+  secret: ${JWT_SECRET}
