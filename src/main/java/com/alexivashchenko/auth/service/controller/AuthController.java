@@ -1,7 +1,6 @@
 package com.alexivashchenko.auth.service.controller;
 
 import com.alexivashchenko.auth.service.dto.LoginRequest;
-import com.alexivashchenko.auth.service.dto.RefreshRequest;
 import com.alexivashchenko.auth.service.dto.RegisterRequest;
 import com.alexivashchenko.auth.service.dto.TokenResponse;
 import com.alexivashchenko.auth.service.service.AuthService;
@@ -17,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.Duration;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
 public class AuthController {
 
@@ -34,14 +33,7 @@ public class AuthController {
                                                HttpServletResponse response) {
         TokenResponse tokens = authService.login(request);
 
-        ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", tokens.refreshToken())
-                .httpOnly(true)
-                .secure(false) // true in prod (HTTPS)
-                .sameSite("Strict")
-                .path("/auth/refresh")
-                .maxAge(Duration.ofDays(30))
-                .build();
-
+        ResponseCookie refreshCookie = buildRefreshCookie(tokens.refreshToken());
         response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
 
         return ResponseEntity.ok(
@@ -51,19 +43,16 @@ public class AuthController {
 
     @PostMapping("/refresh")
     public ResponseEntity<TokenResponse> refresh(
-            @CookieValue("refreshToken") String refreshToken,
+            @CookieValue(value = "refreshToken", required = false) String refreshToken,
             HttpServletResponse response
     ) {
+        if (refreshToken == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
         TokenResponse tokens = authService.refresh(refreshToken);
 
-        ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", tokens.refreshToken())
-                .httpOnly(true)
-                .secure(false)
-                .sameSite("Strict")
-                .path("/auth/refresh")
-                .maxAge(Duration.ofDays(30))
-                .build();
-
+        ResponseCookie refreshCookie = buildRefreshCookie(tokens.refreshToken());
         response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
 
         return ResponseEntity.ok(
@@ -76,7 +65,9 @@ public class AuthController {
 
         ResponseCookie deleteCookie = ResponseCookie.from("refreshToken", "")
                 .httpOnly(true)
-                .path("/auth/refresh")
+                .secure(false) // true in prod
+                .sameSite("Strict") // None in prod
+                .path("/api/v1/auth/refresh")
                 .maxAge(0)
                 .build();
 
@@ -85,7 +76,15 @@ public class AuthController {
         return ResponseEntity.noContent().build();
     }
 
-
+    private ResponseCookie buildRefreshCookie(String refreshToken) {
+        return ResponseCookie.from("refreshToken", refreshToken)
+                .httpOnly(true)
+                .secure(false) // true in prod (HTTPS)
+                .sameSite("Strict") // None in prod
+                .path("/api/v1/auth/refresh")
+                .maxAge(Duration.ofDays(30))
+                .build();
+    }
 
 }
 
