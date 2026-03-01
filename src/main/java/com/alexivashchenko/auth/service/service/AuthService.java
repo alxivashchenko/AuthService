@@ -6,6 +6,7 @@ import com.alexivashchenko.auth.service.dto.TokenResponse;
 import com.alexivashchenko.auth.service.entity.User;
 import com.alexivashchenko.auth.service.exception.UserAlreadyExistsException;
 import com.alexivashchenko.auth.service.repository.UserRepository;
+import com.alexivashchenko.auth.service.service.provisioning.UserProvisioningClient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -20,6 +21,7 @@ public class AuthService {
     private final JwtService jwtService;
     private final RefreshTokenService refreshTokenService;
     private final PasswordEncoder passwordEncoder;
+    private final UserProvisioningClient userProvisioningClient;
 
     public void register(RegisterRequest request) {
         if (userRepository.findByEmail(request.email()).isPresent()) {
@@ -30,7 +32,13 @@ public class AuthService {
         user.setEmail(request.email());
         user.setPassword(passwordEncoder.encode(request.password()));
 
-        userRepository.save(user);
+        User saved = userRepository.save(user);
+
+        // 🔥 NEW: provision profile
+        userProvisioningClient.createProfile(
+                saved.getId(),
+                saved.getEmail()
+        );
     }
 
     @Transactional
