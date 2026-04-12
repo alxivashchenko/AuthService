@@ -22,16 +22,15 @@ user:
   service:
     base-url: ${USER_SERVICE_BASE_URL}
 
-management:
-  tracing:
-    sampling:
-      probability: 1.0
-
-  otlp:
-    tracing:
-      endpoint: http://otel-collector:4317
-
-  endpoints:
-    web:
-      exposure:
-        include: health,info,prometheus
+#management:
+#  tracing:
+#    sampling:
+#      probability: 1.0
+#  otlp:
+#    tracing:
+#      endpoint: http://otel-collector:4318
+#
+#  endpoints:
+#    web:
+#      exposure:
+#        include: health,info,prometheus
