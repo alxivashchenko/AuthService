@@ -22,15 +22,18 @@ user:
   service:
     base-url: ${USER_SERVICE_BASE_URL}
 
-#management:
-#  tracing:
-#    sampling:
-#      probability: 1.0
-#  otlp:
-#    tracing:
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+
+#otel:
+#  exporter:
+#    otlp:
 #      endpoint: http://otel-collector:4318
-#
-#  endpoints:
-#    web:
-#      exposure:
-#        include: health,info,prometheus
+#      protocol: http/protobuf
+
+  resource:
+    attributes:
+      service.name: auth-service
